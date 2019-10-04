@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # ****** Configuration and setup ******
 
@@ -11,14 +11,14 @@ IFS=$'\n'
 
 processDirectory() {
   local DIR="$TARGET_DIR/$1"
-  pushd "$DIR" > /dev/null || return
+  cd "$DIR" || return
   if [ -e "$DIR/$CONFIG_FILE_NAME" ]; then
     echo "- - Found $CONFIG_FILE_NAME file in $1. Parse and process."
     processConfig "$DIR"
   else
     echo "- - No $CONFIG_FILE_NAME file in $DIR. Skip that."
   fi
-  popd > /dev/null || exit
+  cd .. || exit
 }
 
 processConfig() {
@@ -41,13 +41,20 @@ processConfig() {
 echo " *** This is yt2fof ***"
 echo "USAGE: yt2fof.sh [<targetDir>]"
 echo " * The script will either find a $CONFIG_FILE_NAME in the target directoy and process it directly"
-echo " * or traverse all of the target's subdirectories looking for and processing $CONFIG_FILE_NAME."
+echo " * or traverse all of the target's direct subdirectories looking for and processing $CONFIG_FILE_NAME."
 
 # popd to optional target directory
-if [ -d "$(pwd)/$1" ]; then
+if [ -n "$1" -a -d "$(pwd)/$1" ]; then
   echo "- switch into target directory '$1'"
-  pushd "$1" > /dev/null || exit
+  cd "$1" || exit
 fi
+
+# shortuct for docker mode if sources subdirectory exists
+if [ -z "$1" -a -d "$(pwd)/sources" ]; then
+  echo "- switch into target directory 'sources'"
+  cd sources || exit
+fi
+
 TARGET_DIR=$(pwd)
 
 if [ -e "$TARGET_DIR/$CONFIG_FILE_NAME" ]; then
